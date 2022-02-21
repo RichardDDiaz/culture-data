@@ -1,0 +1,5 @@
+pip3 install Unidecode
+pip3 install pandas 
+"pandas incluye numpy"
+pip3 install requests
+pip install python-decouple
