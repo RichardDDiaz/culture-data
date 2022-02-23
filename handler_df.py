@@ -1,12 +1,15 @@
+from unidecode import unidecode
 import pandas as pd
 import numpy as np
-from unidecode import unidecode
 
 
 class handler_df:
     def __init__(self, path_csv):
         self.path_csv = path_csv
-        self._df = pd.read_csv(path_csv)
+        try:
+            self._df = pd.read_csv(path_csv)
+        except pd.errors.EmptyDataError as e:
+            SystemExit(f"Error empty data in path {self.path_csv} \n" + str(e))
         self._df.columns = [unidecode(x.lower()) for x in self._df.columns]
 
     def select_columns(self, list_columns):

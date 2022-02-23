@@ -1,5 +1,7 @@
 from csv_download import csv_download
 from handler_df import handler_df
+from conexionDB import conexionDB
+from decouple import config
 import pandas as pd
 
 
@@ -14,13 +16,13 @@ def cleaning_column_1_0(df, culumn):
 if __name__ == "__main__":
     # crear las clases de csv_download para cada csv
     csv_museos = csv_download(
-        "https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/4207def0-2ff7-41d5-9095-d42ae8207a5d/download/museo.csv",
+        config("URL_MUSEOS"),
         "Museos")
     csv_cines = csv_download(
-        "https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/392ce1a8-ef11-4776-b280-6f1c7fae16ae/download/cine.csv",
+        config("URL_CINES"),
         "Salas de Cine")
     csv_bibliotecas = csv_download(
-        "https://datos.cultura.gob.ar/dataset/37305de4-3cce-4d4b-9d9a-fec3ca61d09f/resource/01c6c048-dbeb-44e0-8efa-6944f73715d7/download/biblioteca_popular.csv",
+        config("URL_BIBLIOTECAS_POPULARES"),
         "Bibliotecas Populares")
 
     # descargar los csv y obtener los paths de cada uno
@@ -48,7 +50,7 @@ if __name__ == "__main__":
         cod_localidad
         id_provincia
         id_departamento
-        categoría
+        categoria
         provincia
         localidad
         nombre
@@ -87,10 +89,20 @@ if __name__ == "__main__":
                            handler_df_museos.get_df()])
 
     # Renombrando columnas
-    df_tabla1.columns = ["cod_localidad", "id_provincia", "id_departamento",
-                         "categoria", "provincia", "localidad", "nombre",
-                         "domicilio", "cp", "telefono", "mail",
-                         "web"]
+    df_tabla1.columns = [
+        "cod_localidad",
+        "id_provincia",
+        "id_departamento",
+        "categoria",
+        "provincia",
+        "localidad",
+        "nombre",
+        "domicilio",
+        "codigo_postal",
+        "numero_de_telefono",
+        "mail",
+        "web"]
+    print(list(df_tabla1.columns))
 
     """
     TABLA: tablas con la siguiente informacion:
@@ -119,7 +131,7 @@ if __name__ == "__main__":
                             (df_cines.loc[:, ["fuente"]]),
                             (df_bibliotecas.loc[:, ["fuente"]])])
     df_fuentes = pd.DataFrame(df_fuentes.value_counts()).reset_index()
-    df_fuentes.columns = ["fuentes", "cantidad_registros_fuente"]
+    df_fuentes.columns = ["fuente", "cantidad_registros_fuente"]
 
     # Cantidad de registros por provincia y categoría
     df_provincia_categoria = pd.DataFrame({
@@ -152,13 +164,24 @@ if __name__ == "__main__":
                                  "espacio_incaa"]]
     cleaning_column_1_0(df_tabla3, "espacio_incaa")
     df_tabla3 = df_tabla3.groupby(["provincia"]).agg(
-        {"pantallas": "sum", "butacas": "sum", "espacio_incaa": "sum"}).reset_index()
+        {"pantallas": "sum",
+         "butacas": "sum",
+         "espacio_incaa": "sum"}).reset_index()
 
     df_tabla3.columns = ["provincia", "cantidad_de_pantallas",
                          "cantidad_de_butacas", "cantidad_de_espacios_incaa"]
 
-    # Se exporta la tabla a un csv
-    df_tabla1.to_csv("tabla1.csv", index=False)
-    df_tabla2.to_csv("tabla2.csv", index=False)
-    df_tabla3.to_csv("tabla3.csv", index=False)
+    # Se cargan los datos a una base  de datos postgresql con
+    # sqlAlchemy
+
+    conexionDB_postgres = conexionDB()
+    # tabla1
+    conexionDB_postgres.insert_update_table_with_csv(
+        "centros_cultura", df_tabla1)
+    # tabla2
+    conexionDB_postgres.insert_update_table_with_csv("cantidades", df_tabla2)
+    # tabla3
+    conexionDB_postgres.insert_update_table_with_csv(
+        "info_cines_provincia", df_tabla3)
+
     print("fin")

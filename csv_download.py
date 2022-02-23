@@ -1,7 +1,8 @@
-import requests as req
-import locale
 from datetime import datetime
 from pathlib import Path
+import requests as req
+import locale
+
 
 locale.setlocale(locale.LC_ALL, 'es_ES.utf8')
 
@@ -23,12 +24,13 @@ class csv_download:
             with open(path_raw + "/" + full_name, "wb") as f:
                 f.write(file.content)
         except req.exceptions.ConnectionError as e:
-            raise SystemExit(e)
+            raise SystemExit(f"Error de conexion: {self.url} \n" +
+                             str(e))
         except req.exceptions.HTTPError as e:
-            raise SystemExit(e)
+            raise SystemExit("Error HTTP \n" + str(e))
         except req.exceptions.RequestException as e:
-            raise SystemExit(e)
+            raise SystemExit(str(e))
         except OSError as e:
-            raise SystemExit(f"Error al crear el directorio" + e.response.text)
+            raise SystemExit("Error al crear el directorio \n" + str(e))
 
         return path_raw + "/" + full_name
