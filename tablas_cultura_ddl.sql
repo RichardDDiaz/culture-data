@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS tablas_cultura.info_cines_provincia (
 );
 
 
--- trigger que modifica la columna "fecha_carga" de la tabla "general_data"
+-- triggers que modifica la columna "fecha_carga" de las 3 tablas
 -- antes de insertarlas
 
 CREATE OR REPLACE FUNCTION insert_currect_date()

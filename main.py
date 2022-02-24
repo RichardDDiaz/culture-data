@@ -4,7 +4,9 @@ from conexionDB import conexionDB
 from decouple import config
 import pandas as pd
 
-"""Reformatea a 1 y 0 toda una columna de un df particular"""
+# Reformatea a 1 y 0 toda una columna de un df particular
+
+
 def cleaning_column_1_0(df, culumn):
     for i in range(len(df)):
         if not pd.notnull(df.loc[i, culumn]):
@@ -14,21 +16,17 @@ def cleaning_column_1_0(df, culumn):
 
 
 if __name__ == "__main__":
-    # crear las clases de csv_download para cada csv
-    csv_museos = csv_download(
+    # crear las clases de csv_download para cada csv, descargarlos y
+    # obtener su path.
+    path_museos = csv_download(
         config("URL_MUSEOS"),
-        "Museos")
-    csv_cines = csv_download(
+        "Museos").download_explicit_date()
+    path_cines = csv_download(
         config("URL_CINES"),
-        "Salas de Cine")
-    csv_bibliotecas = csv_download(
+        "Salas de Cine").download_explicit_date()
+    path_bibliotecas = csv_download(
         config("URL_BIBLIOTECAS_POPULARES"),
-        "Bibliotecas Populares")
-
-    # descargar los csv y obtener los paths de cada uno
-    path_museos = csv_museos.download_explicit_date()
-    path_cines = csv_cines.download_explicit_date()
-    path_bibliotecas = csv_bibliotecas.download_explicit_date()
+        "Bibliotecas Populares").download_explicit_date()
 
     # -----------------------------------------------------
 
@@ -37,7 +35,7 @@ if __name__ == "__main__":
     handler_df_cines = handler_df(path_cines)
     handler_df_bibliotecas = handler_df(path_bibliotecas)
 
-    # DataFrames crudos
+    # DataFrames crudos necesarios para la segunda tabla
     df_museos = handler_df_museos.get_df()
     df_cines = handler_df_cines.get_df()
     df_bibliotecas = handler_df_bibliotecas.get_df()
@@ -45,7 +43,7 @@ if __name__ == "__main__":
     # A continuacion se generaran 3 tablas con los datos de cada csv
 
     """
-    TABLA: Se normalizaran toda la información de Museos, Salas de Cine y
+    TABLA 1: Se normalizaran toda la información de Museos, Salas de Cine y
     Bibliotecas Populares, para crear una única tabla que contenga:
         cod_localidad
         id_provincia
@@ -60,7 +58,7 @@ if __name__ == "__main__":
         mail
         web
     """
-    # columnas estandarizadas para los 3 csv
+    # columnas estandarizadas para los 3 csv de la tabla 1
     select_columns = ["cod_loc", "idprovincia", "iddepartamento", "categoria",
                       "provincia", "localidad", "nombre", "domicilio", "cp",
                       "cod_area", "telefono", "mail", "web"]
@@ -102,7 +100,6 @@ if __name__ == "__main__":
         "numero_de_telefono",
         "mail",
         "web"]
-    print(list(df_tabla1.columns))
 
     """
     TABLA: tablas con la siguiente informacion:
@@ -159,21 +156,24 @@ if __name__ == "__main__":
     la columna se colocan strings afirmativos, lo que indicara finalmente que
     es esta columna un 1 es que si existen espacio incca y un 0 un no.
     """
-
+    # seleccionando las columnas necesarias
     df_tabla3 = df_cines.loc[:, ["provincia", "pantallas", "butacas",
                                  "espacio_incaa"]]
+
+    # limpiando la tabla
     cleaning_column_1_0(df_tabla3, "espacio_incaa")
+
+    # obteniendo los resultados finales
     df_tabla3 = df_tabla3.groupby(["provincia"]).agg(
         {"pantallas": "sum",
          "butacas": "sum",
          "espacio_incaa": "sum"}).reset_index()
 
+    # Renombrando columnas
     df_tabla3.columns = ["provincia", "cantidad_de_pantallas",
                          "cantidad_de_butacas", "cantidad_de_espacios_incaa"]
 
-    # Se cargan los datos a una base  de datos postgresql con
-    # sqlAlchemy
-
+    # Se cargan los datos a una base  de datos postgresql con sqlAlchemy
     conexionDB_postgres = conexionDB()
     # tabla1
     conexionDB_postgres.insert_update_table_with_csv(
