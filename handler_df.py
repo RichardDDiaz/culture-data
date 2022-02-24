@@ -1,7 +1,10 @@
 from unidecode import unidecode
 import pandas as pd
 import numpy as np
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 class handler_df:
     def __init__(self, path_csv):
@@ -14,7 +17,9 @@ class handler_df:
         try:
             self._df = pd.read_csv(path_csv)
         except pd.errors.EmptyDataError as e:
-            SystemExit(f"Error empty data in path {self.path_csv} \n" + str(e))
+            logger.error(f"El archivo en path: {self.path_csv}"
+                        "No existe o esta vacio")
+            SystemExit(f"Error datos vacios en: {self.path_csv} \n" + str(e))
         self._df.columns = [unidecode(x.lower()) for x in self._df.columns]
 
     def select_columns(self, list_columns):
@@ -122,6 +127,9 @@ class handler_df:
             columnCp: columna donde hay codigos postales argentinos
             columnWeb: columnas donde hay paginas webs en string
         """
+
+        logger.debug("limpieza y formateo completo al df con csv en:"
+                    f"  {self.path_csv}")
         for i in range(len(self._df)):
             self.numbers_to_string(list_nts, i)
             self.join_columnA_to_columnB(columnAjoin, columnBjoin, i)

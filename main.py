@@ -3,6 +3,7 @@ from handler_df import handler_df
 from conexionDB import conexionDB
 from decouple import config
 import pandas as pd
+import logging
 
 # Reformatea a 1 y 0 toda una columna de un df particular
 
@@ -16,6 +17,9 @@ def cleaning_column_1_0(df, culumn):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(filename="debug.log", level="DEBUG")
+    logger = logging.getLogger(__name__) 
+    logger.debug("Inicio del script main, descargando los csv")
     # crear las clases de csv_download para cada csv, descargarlos y
     # obtener su path.
     path_museos = csv_download(
@@ -28,9 +32,9 @@ if __name__ == "__main__":
         config("URL_BIBLIOTECAS_POPULARES"),
         "Bibliotecas Populares").download_explicit_date()
 
-    # -----------------------------------------------------
-
+    
     # crear clase para la importacion y limpieza de los DF
+    logger.debug("Creando clases para manipular los DF\n")
     handler_df_museos = handler_df(path_museos)
     handler_df_cines = handler_df(path_cines)
     handler_df_bibliotecas = handler_df(path_bibliotecas)
@@ -41,7 +45,7 @@ if __name__ == "__main__":
     df_bibliotecas = handler_df_bibliotecas.get_df()
 
     # A continuacion se generaran 3 tablas con los datos de cada csv
-
+    logger.debug("CREANDO LA TABLA 1 PARA INSERTAR EN UNA DB")
     """
     TABLA 1: Se normalizaran toda la información de Museos, Salas de Cine y
     Bibliotecas Populares, para crear una única tabla que contenga:
@@ -100,6 +104,9 @@ if __name__ == "__main__":
         "numero_de_telefono",
         "mail",
         "web"]
+    logger.debug("TABLA 1 FINALIZADA Y LISTA PARA INSERTAR\n")
+    logger.debug("CREANDO LA TABLA 2 PARA INSERTAR EN UNA DB")
+
 
     """
     TABLA: tablas con la siguiente informacion:
@@ -142,7 +149,8 @@ if __name__ == "__main__":
 
     # aqui con fuentes se utilizaran cross join (producto cartesiano)
     df_tabla2 = df_tabla2.merge(df_fuentes, how='cross')
-
+    logger.debug("TABLA 2 FINALIZADA Y LISTA PARA INSERTAR\n")
+    logger.debug("CREANDO LA TABLA 3 PARA INSERTAR EN UNA DB")
     """
     Tabla: Se procesara la información del csv cines para poder crear una tabla
     que contenga:
@@ -172,7 +180,9 @@ if __name__ == "__main__":
     # Renombrando columnas
     df_tabla3.columns = ["provincia", "cantidad_de_pantallas",
                          "cantidad_de_butacas", "cantidad_de_espacios_incaa"]
+    logger.debug("TABLA 3 FINALIZADA Y LISTA PARA INSERTAR\n")
 
+    logger.debug("iniciando la inserción a la BD")
     # Se cargan los datos a una base  de datos postgresql con sqlAlchemy
     conexionDB_postgres = conexionDB()
     # tabla1
@@ -184,4 +194,4 @@ if __name__ == "__main__":
     conexionDB_postgres.insert_update_table_with_csv(
         "info_cines_provincia", df_tabla3)
 
-    print("fin")
+    logger.debug("inserción completada, script finalizado sin problemas")
