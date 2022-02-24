@@ -4,7 +4,7 @@ from conexionDB import conexionDB
 from decouple import config
 import pandas as pd
 
-
+"""Reformatea a 1 y 0 toda una columna de un df particular"""
 def cleaning_column_1_0(df, culumn):
     for i in range(len(df)):
         if not pd.notnull(df.loc[i, culumn]):
