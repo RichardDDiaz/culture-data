@@ -1,4 +1,4 @@
-# culture-data
+# Datos de Cultura  
 Procesamiento, limpieza, normalizacion y almacenamiento en una base de datos __postgresql__ de tablas generadas con __python__ a travez de diversos csv con informacion de establecimientos culturales en la Republica Argentina.
 
 ##  Objetivo: Tabla 1
@@ -23,7 +23,7 @@ informacion:
 * Cantidad de registros totales por categoría
 * Cantidad de registros totales por fuente
 * Cantidad de registros por provincia y categoría  
-*(*1)*
+*(*1)*, *(*2)*
 
 ## Objetivo: Tabla 3
 > Procesar la información de cines para poder crear una tabla que contenga:
@@ -31,7 +31,7 @@ informacion:
 * Cantidad de pantallas
 * Cantidad de butacas
 * Cantidad de espacios INCAA  
-*(*2)*
+*(*3)*
 
 ## Entorno 
 Este proyecto fue desarollador y testeado en una plataforma linux (ubuntu), todos los comandos descriptos en el README son para dicha plataforma.
@@ -45,18 +45,15 @@ Python3
 `sudo apt-get install python3`  
 
 ### __Entorno virtual__
-
-`python3 -m venv cultura`
-`source cultura/bin/activate`
+`sudo apt-get install python3-pip`  
+`pip3 install virtualenv`  
+`python3 -m venv cultura`  
+`source cultura/bin/activate`  
 
 ### __Librerias necesarias__
-Instalar pip para python linux (ubuntu)
-
-`sudo apt-get install python3-pip`
-
 Ejecute el requiements.txt
 
-`pip install -r requiements.txt`
+`pip3 install -r requiements.txt`
 
 ### __Configurar la conexion a la base de datos PostgreSQL__
 > Debido a que no existen credenciales que ocultar, este repositorio descarga como archivo oculto su .env en ella podra modificar las variables de entorno para las credeciales necesarias para la conexion a la bd postgresql que prefiera.  
@@ -80,7 +77,12 @@ Si desea ejecutar solamente el script sql __tablas_cultura_ddl.sql__ ejecute:
 ## Discusion  
 1. Tranquilamente toda la informacion podria quedar almancenada en una tabla de una sola fila, su largo dependera de la cantidad de fuentes y provincias, pero si se llegara a agregar otra fuente en el futuro, el script sql *tablas_cultura_ddl.sql* deberia ser modificado para poder contemplar esa nueva columna. Ademas a nivel de base de datos una tabla con una sola fila es ruidoso, por lo que procedi a generar una tabla desnormalizada producto de un producto cartesiano, mas informacion en el segudo docstring de main.py
 
-2. La cantidad de asientos, pantallas y espacios incca se cuentan en cantidad de las provincias, en particular la columna espacio incca informa de la cantidad de cines en la provincia que contienen espacios incca.
+2. Se crearon 3 vistas dentro de la base de datos cultura, con el fin de obtener la informacion mencionada como objetivo de la tabla 2:
+    * `select * from tablas_cultura.cantidad_registros_categoria;`
+    * `select * from tablas_cultura.cantidad_registros_fuente;`
+    * `select * from tablas_cultura.cantidad_registros_prov_categ;`
+
+3. La cantidad de asientos, pantallas y espacios incca se cuentan en cantidad de las provincias, en particular la columna espacio incca informa de la cantidad de cines en la provincia que contienen espacios incca.
 
 
 Ante cualquier consulta, posible mejora o discusion, dejenme un comentario. 
