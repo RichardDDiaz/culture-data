@@ -102,3 +102,32 @@ CREATE TRIGGER info_cines_provincia_insert_currect_date
   FOR EACH ROW
   EXECUTE PROCEDURE insert_currect_date();
 
+-- Vistas diseñadas para la rapida obtencion de datos unicos en la tabla cantidades.
+
+-- Cantidad de registros totales por categoría
+CREATE VIEW tablas_cultura.cantidad_registros_categoria AS
+SELECT DISTINCT
+  cant.categoria,
+  cant.cantidad_registros_categoria
+FROM
+  tablas_cultura.cantidades AS cant;
+
+
+
+-- Cantidad de registros totales por fuente
+CREATE VIEW tablas_cultura.cantidad_registros_fuente AS
+SELECT DISTINCT
+  fuent.fuente,
+  fuent.cantidad_registros_fuente
+FROM
+  tablas_cultura.cantidades AS fuent;
+
+
+--Cantidad de registros por provincia y categoría
+CREATE VIEW tablas_cultura.cantidad_registros_prov_categ AS
+SELECT DISTINCT
+  prov.provincia,
+  prov.categoria,
+  prov.cantidad_registros_prov_categ
+FROM
+  tablas_cultura.cantidades AS prov;
